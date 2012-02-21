@@ -23,8 +23,19 @@
 - (id)init {
 	self = [super init];
 	if(self != nil) {
-		self.deviceToken = @"";
-		self.payload = @"{\"aps\":{\"alert\":\"This is some fany message.\",\"badge\":1}}";
+
+        NSUserDefaults* defaults = [NSUserDefaults standardUserDefaults];
+        
+        _payload = [defaults objectForKey:@"payload"];
+        if(_payload == nil){
+            self.payload = @"{\"aps\":{\"alert\":\"This is some fany message.\",\"badge\":1}}";
+//            self.payload = @"{\"aps\":{\"content-available\":1}}"
+        }
+        _deviceToken = [defaults objectForKey:@"deviceToken"];
+        if (_deviceToken == nil) {
+            _deviceToken = @"";
+        }
+
 		self.certificate = [[NSBundle mainBundle] pathForResource:@"apns" ofType:@"cer"];
 	}
 	return self;
@@ -40,6 +51,24 @@
 	// Call super.
 	[super dealloc];
 	
+}
+
+- (void)setPayload:(NSString *)payload{
+    if (![_payload isEqualToString:payload]) {
+        [payload retain];
+        [_deviceToken release];
+        _payload = payload;
+        [[NSUserDefaults standardUserDefaults] setObject:payload forKey:@"payload"];
+    }
+}
+
+- (void)setDeviceToken:(NSString *)deviceToken{
+    if (![_deviceToken isEqualToString:deviceToken]) {
+        [deviceToken retain];
+        [_deviceToken release];
+        _deviceToken = deviceToken;
+        [[NSUserDefaults standardUserDefaults] setObject:deviceToken forKey:@"deviceToken"];
+    }
 }
 
 
@@ -68,7 +97,8 @@
 - (void)connect {
 	
 	if(self.certificate == nil) {
-		return;
+        NSLog(@"you need the APNS Certificate for the app to work");
+        exit(1);
 	}
 	
 	// Define result variable.
@@ -112,6 +142,7 @@
 	do {
 		result = SSLHandshake(context);// NSLog(@"SSLHandshake(): %d", result);
 	} while(result == errSSLWouldBlock);
+    NSLog(@"Handshake done");
 	
 }
 
@@ -194,7 +225,11 @@
 	
 	// Send message over SSL.
 	size_t processed = 0;
-	OSStatus result = SSLWrite(context, &message, (pointer - message), &processed);// NSLog(@"SSLWrite(): %d %d", result, processed);
+	OSStatus result = SSLWrite(context, &message, (pointer - message), &processed);
+    
+    NSLog(@"SSLWrite(): %ld %lu", result, processed);
+    
+    NSLog(@"pushed '%@' to token %@", self.payload, self.deviceToken);
 	
 }
 
