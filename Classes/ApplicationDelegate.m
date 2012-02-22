@@ -29,8 +29,13 @@
         _payload = [defaults objectForKey:@"payload"];
         if(_payload == nil){
             self.payload = @"{\"aps\":{\"alert\":\"This is some fany message.\",\"badge\":1}}";
-//            self.payload = @"{\"aps\":{\"content-available\":1}}"
+//            self.payload = @"{\"aps\":{\"content-available\":1}}" //
         }
+//               self.payload = @"{\"aps\":{\"alert\":\"This is some fany message.\",\"badge\":1}}";
+
+//                  {"aps":{"alert":"This is some fany message.","badge":0}}
+//                  {"aps":{"content-available":1}}
+        
         _deviceToken = [defaults objectForKey:@"deviceToken"];
         if (_deviceToken == nil) {
             _deviceToken = @"";
@@ -56,7 +61,7 @@
 - (void)setPayload:(NSString *)payload{
     if (![_payload isEqualToString:payload]) {
         [payload retain];
-        [_deviceToken release];
+        [_payload release];
         _payload = payload;
         [[NSUserDefaults standardUserDefaults] setObject:payload forKey:@"payload"];
     }
